@@ -96,6 +96,11 @@
       "Description" : "Newly Created VPC",
       "Value" : { "Ref": "MyVpc" }
 
+    },
+    "InstanceId" : {
+      "Description" : "Newly Created EC2 Instance",
+      "Value" : { "Ref": "MyEc2Instance" }
+
     }
   }
 
