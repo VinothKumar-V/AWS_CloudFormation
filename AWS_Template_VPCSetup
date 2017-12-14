@@ -1,0 +1,102 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "",
+
+  "Parameters" : {
+    "VpcName" : {
+      "Type" : "String"
+    },
+    "VpcSubnet" : {
+      "Type" : "String"
+    },
+    "Subnet1" :{
+      "Type" : "String"
+    },
+    "SelectAZ" : {
+      "Type" : "AWS::EC2::AvailabilityZone::Name"
+    }
+  },
+
+  "Mappings" :  {
+    "RegionMap" : {
+      "us-west-2a" : { "ami"  : "ami-9fa343e7", "type" : "t2.micro"}
+
+    }
+  },
+
+  "Resources" : {
+    "MyVpc" : {
+      "Type" : "AWS::EC2::VPC",
+      "Properties" : {
+        "CidrBlock": { "Ref": "VpcSubnet" },
+        "EnableDnsSupport" : true,
+        "EnableDnsHostnames" : true
+              }
+    },
+    "MyIG" : {
+      "Type" : "AWS::EC2::InternetGateway"
+
+    },
+
+    "AttachIGW" : {
+      "Type" : "AWS::EC2::VPCGatewayAttachment",
+      "Properties" : {
+        "VpcId": { "Ref": "MyVpc" },
+        "InternetGatewayId" : { "Ref": "MyIG" }
+      }
+    },
+    "MySub1" : {
+      "Type" : "AWS::EC2::Subnet",
+      "Properties" : {
+        "CidrBlock" : { "Ref": "Subnet1" },
+        "VpcId" : { "Ref": "MyVpc" },
+        "AvailabilityZone" :  { "Ref": "SelectAZ" }
+
+              }
+    },
+    "MyRouteT" : {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref": "MyVpc" }
+
+      }
+    },
+    "MyRouteIg" : {
+      "Type": "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref": "MyRouteT" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref": "MyIG" }
+      }
+    },
+    "MyRouteAddInt": {
+      "Type" :"AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "RouteTableId": { "Ref": "MyRouteT" },
+        "SubnetId": { "Ref": "MySub1" }
+      }
+    },
+
+
+    "MyEc2Instance" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "AvailabilityZone" : { "Ref": "SelectAZ" },
+        "ImageId" :  { "Fn::FindInMap" : ["RegionMap", { "Ref": "SelectAZ" }, "ami"]},
+        "InstanceType" : { "Fn::FindInMap" : ["RegionMap", { "Ref": "SelectAZ" }, "type"] },
+        "SubnetId" : { "Ref": "MySub1" }
+
+
+      }
+    }
+  },
+  "Outputs" : {
+    "VPCID" : {
+      "Description" : "Newly Created VPC",
+      "Value" : { "Ref": "MyVpc" }
+
+    }
+  }
+
+}
