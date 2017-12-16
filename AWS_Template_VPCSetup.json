@@ -5,17 +5,25 @@
 
   "Parameters" : {
     "VpcName" : {
+      "Description" : "Type the VPC name to create",
       "Type" : "String"
     },
     "VpcSubnet" : {
+      "Description" : "Type the VPC Subnet EX- 10.0.0.0/16",
       "Type" : "String"
     },
     "Subnet1" :{
+      "Description" : "Type the Subnet for AZ Ex- 10.0.0.0/24",
       "Type" : "String"
     },
     "SelectAZ" : {
+      "Description" : "Select the AZ",
       "Type" : "AWS::EC2::AvailabilityZone::Name"
-    }
+    },
+    "KeyPair" : {
+      "Description" : "Select the keypair for EC2 Machine or Create Manual",
+      "Type" : "AWS::EC2::KeyPair::KeyName"
+  }
   },
 
   "Mappings" :  {
@@ -78,6 +86,23 @@
       }
     },
 
+    "MySecGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupName" : "MySecGrp",
+        "VpcId" : { "Ref": "MyVpc" },
+        "GroupDescription" : "TO Allow SSH to the machine",
+        "SecurityGroupIngress" : [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+
 
     "MyEc2Instance" : {
       "Type" : "AWS::EC2::Instance",
@@ -85,7 +110,9 @@
         "AvailabilityZone" : { "Ref": "SelectAZ" },
         "ImageId" :  { "Fn::FindInMap" : ["RegionMap", { "Ref": "SelectAZ" }, "ami"]},
         "InstanceType" : { "Fn::FindInMap" : ["RegionMap", { "Ref": "SelectAZ" }, "type"] },
-        "SubnetId" : { "Ref": "MySub1" }
+        "SubnetId" : { "Ref": "MySub1" },
+        "SecurityGroupIds" : [ { "Ref": "MySecGroup" }],
+        "KeyName" : { "Ref": "KeyPair" }
 
 
       }
